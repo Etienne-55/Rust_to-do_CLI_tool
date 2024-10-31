@@ -2,6 +2,9 @@ use rusqlite::{params, Connection, Result};
 use std::error::Error;
 use std::io::{self, Write};
 
+
+mod parts_menu;
+
 fn init_parts_db() -> Result<Connection> {
     let connn = Connection::open("parts.db")?;
 
@@ -112,19 +115,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     loop {
         
-        println!("Skate toolkit.");
         println!("-----------------------------------------");
-        println!("1->Add drill.");
-        println!("2->Show drill.");
-        println!("3->Complete drill.");
+        println!("Track skate progession.");
         println!("-----------------------------------------");
-        println!("Calculate budget to see if it a good buy.");
-        println!("-----------------------------------------");
-        println!("4-Calculate");
-        println!("5-Add part to wishlist");
-        println!("6-Show wishlist");
-        println!("7-Remove from wishlist");
-        println!("8->Exit");
+        println!("1-> Add drill.");
+        println!("2-> Show drill.");
+        println!("3-> Complete drill.");
+        println!("4-> Wish list menu.");
+        println!("5-> Exit");
         println!("-----------------------------------------");
 
         let mut choice = String::new();
@@ -157,18 +155,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             complete_drill(&conn, id)?;
         }
         
-//        "4" => { delete_drill(&conn)?;
-//      }
-        
-        "5" => {
-            let mut skatepart = String::new();
-            println!("Enter a skate part that you want to buy: ");
-            io::stdout().flush()?;
-            io::stdin().read_line(&mut skatepart)?;
-            add_skate_part(&connn, skatepart.trim())?;
-        }
+        "4" => { parts_menu::second_menu();
+      }
 
-        "8" => break,
+        "5" => break,
         _ => println!("Invalid choice!"),
         }
     }
