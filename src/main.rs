@@ -57,7 +57,9 @@ fn show_drill(conn: &Connection) -> Result<()> {
     println!("Active drills:");
     for drill in drill_iter {
         let (id, description, completed) = drill?;
-        if !completed {
+        if completed {
+            println!("{}: {} [--Ok--]", id, description);
+        } else {
             println!("{}: {} [✗]", id, description);
         }
     }
@@ -70,10 +72,10 @@ fn complete_drill(conn: &Connection, drill_id: i32) -> Result<()> {
     Ok(())
 }
 
-//fn delete_drill(conn: &Connection, drill_id: i32) -> Result<()> {
-//    conn.execute("DELETE FROM  drills WHERE id = ?1", params![drill_id])?;
-//    Ok(())
-//}
+fn delete_drill(conn: &Connection, drill_id: i32) -> Result<()> {
+    conn.execute("DELETE FROM  drills WHERE id = ?1", params![drill_id])?;
+    Ok(())
+}
 
 fn calculate_price() {
     
@@ -155,8 +157,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             complete_drill(&conn, id)?;
         }
         
-        "4" => { calculate_price();
-        }
+//        "4" => { delete_drill(&conn)?;
+//      }
         
         "5" => {
             let mut skatepart = String::new();
