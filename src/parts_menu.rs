@@ -24,6 +24,7 @@ pub fn add_skate_part(connn: &Connection, skatepart: &str) -> Result<()> {
     Ok(())
 }
 
+
 pub fn calculate_price() {
     
     println!("Enter the amount of money you have: ");
@@ -77,19 +78,11 @@ pub fn second_menu() -> Result<(), Box<dyn Error>> {
 
         match choice {
 
-        "1" => {
-            let mut skatepart = String::new();
-            println!("Enter a skate part that you want to buy: ");
-            io::stdout().flush()?;
-            io::stdin().read_line(&mut skatepart)?;
-            add_skate_part(&connn, skatepart.trim())?;
+        "1" => {  
+            calculate_price();
         }
 
-//        "2" => {
-//        }
-        
-        
-        "6" => {
+        "2" => {
             let mut skatepart = String::new();
             println!("Enter a skate part that you want to buy: ");
             io::stdout().flush()?;

@@ -5,28 +5,6 @@ use std::io::{self, Write};
 
 mod parts_menu;
 
-fn init_parts_db() -> Result<Connection> {
-    let connn = Connection::open("parts.db")?;
-
-    connn.execute(
-        "CREATE TABLE IF NOT EXISTS parts (
-            id INTEGER PRIMARY KEY,
-            skatepart TEXT NOT NULL
-        )",
-        [],
-    )?;
-    
-    Ok(connn)
-}
-
-fn add_skate_part(connn: &Connection, skatepart: &str) -> Result<()> {
-    connn.execute(
-        "INSERT INTO parts(skatepart) VALUES(?1)",
-        params![skatepart],
-    )?;
-    Ok(())
-}
-
 fn init_db() -> Result<Connection> {
     let conn = Connection::open("skate.db")?;
 
@@ -80,38 +58,8 @@ fn delete_drill(conn: &Connection, drill_id: i32) -> Result<()> {
     Ok(())
 }
 
-fn calculate_price() {
-    
-    println!("Enter the amount of money you have: ");
-    let mut money = String::new();
-    io::stdin().read_line(&mut money).expect("Failed to read line");
-    let money: f64 = money.trim().parse().expect("Please enter a valid number");
-
-    println!("Enter the price of the item: ");
-    let mut item = String::new();
-    io::stdin().read_line(&mut item).expect("Failed to read line");
-    let item: f64 = item.trim().parse().expect("Please enter a valid number");
-
-    println!("Enter the day of the month: ");
-    let mut day = String::new();
-    io::stdin().read_line(&mut day).expect("Failed to read line");
-    let day: f64 = day.trim().parse().expect("Please enter a valid number");
-
-
-    let current_money: f64 = money - item;
-
-    let days_left: f64 = 30.0 - day;
-
-    let money_days: f64 = current_money / days_left;
-
-    println!("If you buy this, you will have {} left in your bank", current_money);
-    println!("There are {} days left in this month and you would have {:.1} to spend per day", days_left, money_days);
-
-
-}
 fn main() -> Result<(), Box<dyn Error>> {
     let conn = init_db()?;
-    let connn = init_parts_db()?;
 
     loop {
         
