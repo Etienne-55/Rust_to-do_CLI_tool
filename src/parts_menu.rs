@@ -9,6 +9,7 @@ pub fn init_parts_db() -> Result<Connection> {
         "CREATE TABLE IF NOT EXISTS parts (
             id INTEGER PRIMARY KEY,
             skatepart TEXT NOT NULL
+            bought BOOLEAN NOT NULL DEFAULT 0
         )",
         [],
     )?;
@@ -18,12 +19,36 @@ pub fn init_parts_db() -> Result<Connection> {
 
 pub fn add_skate_part(connn: &Connection, skatepart: &str) -> Result<()> {
     connn.execute(
-        "INSERT INTO parts(skatepart) VALUES(?1)",
-        params![skatepart],
+        "INSERT INTO parts(skatepart, bought) VALUES(?1)",
+        params![skatepart, false],
     )?;
     Ok(())
 }
 
+fn show_parts(connn: &Connection) -> Result<()> {
+    let mut stmt = connn.prepare("SELECT id, skatepart, bought FROM parts ORDER BY bought")?;
+    let part_iter = stmt.query_map([], |row| {
+        let bought: bool = row.get(2)?;
+        Ok((row.get::<_, i32>(0)?, row.get::<_, String>(1)?, bought))
+    })?;
+
+    println!("Parts to buy:");
+    for part in part_iter {
+        let (id, skatepart, bought) = part?;
+        if bought {
+            println!("{}: {} [--Ok--]", id, skatepart);
+        } else {
+            println!("{}: {} [✗]", id, skatepart);
+        }
+    }
+
+    Ok(())
+}
+
+fn bought_parts(connn: &Connection, part_id: i32) -> Result<()> {
+    connn.execute("UPDATE parts SET bought = 1 WHERE id = ?1", params![part_id])?;
+    Ok(())
+}
 
 pub fn calculate_price() {
     
