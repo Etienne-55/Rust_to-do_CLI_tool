@@ -3,12 +3,13 @@ use std::error::Error;
 use std::io::{self, Write};
 
 pub fn init_parts_db() -> Result<Connection> {
-    let connn = Connection::open("parts.db")?;
+    let connn = Connection::open("parts-skate.db")?;
 
     connn.execute(
         "CREATE TABLE IF NOT EXISTS parts (
             id INTEGER PRIMARY KEY,
-            skatepart TEXT NOT NULL
+            skatepart TEXT NOT NULL,
+            bought BOOLEAN NOT NULL DEFAULT 0
         )",
         [],
     )?;
@@ -18,9 +19,34 @@ pub fn init_parts_db() -> Result<Connection> {
 
 pub fn add_skate_part(connn: &Connection, skatepart: &str) -> Result<()> {
     connn.execute(
-        "INSERT INTO parts(skatepart) VALUES(?1)",
-        params![skatepart],
+        "INSERT INTO parts(skatepart, bought) VALUES(?1, ?2)",
+        params![skatepart, false],
     )?;
+    Ok(())
+}
+
+fn show_parts(connn: &Connection) -> Result<()> {
+    let mut tmt = connn.prepare("SELECT id, skatepart, bought FROM parts ORDER BY bought")?;
+    let part_iter = tmt.query_map([], |row| {
+        let bought: bool = row.get(2)?;
+        Ok((row.get::<_, i32>(0)?, row.get::<_, String>(1)?, bought))
+    })?;
+
+    println!("Parts to buy:");
+    for part in part_iter {
+        let (id, skatepart, bought) = part?;
+        if bought {
+            println!("{}: {} [--bought--]", id, skatepart);
+        } else {
+            println!("{}: {} [✗]", id, skatepart);
+        }
+    }
+
+    Ok(())
+}
+
+fn bought_parts(connn: &Connection, part_id: i32) -> Result<()> {
+    connn.execute("UPDATE parts SET bought = 1 WHERE id = ?1", params![part_id])?;
     Ok(())
 }
 
@@ -65,7 +91,7 @@ pub fn second_menu() -> Result<(), Box<dyn Error>> {
         println!("1-Calculate budget");
         println!("2-Add part to wishlist");
         println!("3-Show wishlist");
-        println!("4-Remove from wishlist");
+        println!("4-Mark as bought");
         println!("5->Exit");
         println!("-----------------------------------------");
 
@@ -88,6 +114,19 @@ pub fn second_menu() -> Result<(), Box<dyn Error>> {
             io::stdout().flush()?;
             io::stdin().read_line(&mut skatepart)?;
             add_skate_part(&connn, skatepart.trim())?;
+        }
+
+        "3" => {
+            show_parts(&connn)?;
+        }
+
+        "4" => {
+            let mut id = String::new();
+            println!("Enter item ID to mark as bought: ");
+            io::stdout().flush()?;
+            io::stdin().read_line(&mut id)?;
+            let id: i32 = id.trim().parse()?;
+            bought_parts(&connn, id)?;
         }
 
         "5" => break,
